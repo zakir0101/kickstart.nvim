@@ -1,13 +1,3 @@
-os.execute '. enter-vsshell.ps1'
-os.execute '. pwsh -Command { $PSStyle.FileInfo.Directory = "`e[100;1m" } '
--- ctermbg=none
-vim.o.shell = '"C:\\Program Files\\PowerShell\\7\\pwsh.exe"'
-vim.o.shellcmdflag =
-  '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command  [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;'
-vim.o.shellredir = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
-vim.o.shellpipe = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
-vim.o.shellquote = ''
-vim.o.shellxquote = ''
 --[[
 
 =====================================================================
@@ -175,24 +165,12 @@ vim.opt.scrolloff = 10
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- My shortcuts
-
-vim.api.nvim_set_keymap('n', '<leader>t', '<cmd>terminal<CR>', { desc = 'Open [T]erminal' })
-
-vim.api.nvim_set_keymap('t', '<Esc>', '<C-\\><C-n>', { desc = 'exit insert mode in terminal' })
-vim.api.nvim_set_keymap('t', 'jk', '<C-\\><C-n>', { desc = 'exit insert mode in terminal' })
-vim.keymap.set('i', 'jk', '<Esc>')
-
-vim.keymap.set({ 'n' }, '<Leader>k', function()
-  require('lsp_signature').toggle_float_win()
-end, { silent = true, noremap = true, desc = 'toggle signature' })
-vim.keymap.set('i', '<C-z>', '<C-y>')
--- Diagnostic keymaps
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
-
+--
+--
+--
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
---
+-- is not what someone will guess without a bit more experience.j
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
@@ -202,85 +180,6 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
-
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
---
---  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<A-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<A-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<A-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<A-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
-vim.keymap.set('i', '<A-h>', '<C-\\><C-N><C-w>h', { desc = 'Move focus to the left window' })
-vim.keymap.set('i', '<A-j>', '<C-\\><C-N><C-w>j', { desc = 'Move focus to the down window' })
-vim.keymap.set('i', '<A-k>', '<C-\\><C-N><C-w>k', { desc = 'Move focus to the above window' })
-vim.keymap.set('i', '<A-l>', '<C-\\><C-N><C-w>l', { desc = 'Move focus to the right window' })
-
-vim.keymap.set('t', '<A-h>', '<C-\\><C-N><C-w>h', { desc = 'Move focus to the left window' })
-vim.keymap.set('t', '<A-j>', '<C-\\><C-N><C-w>j', { desc = 'Move focus to the down window' })
-vim.keymap.set('t', '<A-k>', '<C-\\><C-N><C-w>k', { desc = 'Move focus to the above window' })
-vim.keymap.set('t', '<A-l>', '<C-\\><C-N><C-w>l', { desc = 'Move focus to the right window' })
--- Keybinds to increase\decrease windowsize
---
-vim.keymap.set('n', '<A-S-l>', [[<cmd>vertical resize +5<cr>]]) -- make the window biger vertically
-vim.keymap.set('n', '<A-S-h>', [[<cmd>vertical resize -5<cr>]]) -- make the window smaller vertically
-vim.keymap.set('n', '<A-S-j>', [[<cmd>horizontal resize +2<cr>]]) -- make the window bigger horizontally by pressing shift and =
-vim.keymap.set('n', '<A-S-k>', [[<cmd>horizontal resize -2<cr>]]) -- make the window smaller horizontally by pressing shift and -
-
-vim.keymap.set('i', '<A-S-l>', [[<cmd>vertical resize +5<cr>]]) -- make the window biger vertically
-vim.keymap.set('i', '<A-S-h>', [[<cmd>vertical resize -5<cr>]]) -- make the window smaller vertically
-vim.keymap.set('i', '<A-S-j>', [[<cmd>horizontal resize +2<cr>]]) -- make the window bigger horizontally by pressing shift and =
-vim.keymap.set('i', '<A-S-k>', [[<cmd>horizontal resize -2<cr>]]) -- make the window smaller horizontally by pressing shift and -
-
-vim.keymap.set('t', '<A-S-l>', [[<cmd>vertical resize +5<cr>]]) -- make the window biger vertically
-vim.keymap.set('t', '<A-S-h>', [[<cmd>vertical resize -5<cr>]]) -- make the window smaller vertically
-vim.keymap.set('t', '<A-S-j>', [[<cmd>horizontal resize +2<cr>]]) -- make the window bigger horizontally by pressing shift and =
-vim.keymap.set('t', '<A-S-k>', [[<cmd>horizontal resize -2<cr>]]) -- make the window smaller horizontally by pressing shift and -
--- [[ Basic Autocommands ]]
---  See `:help lua-guide-autocommands`
-
--- quick fix:
-vim.keymap.set('n', '<A-S>N', '<cmd>cnext<cr>', { desc = 'Move to next Quick Fix' })
-vim.keymap.set('n', '<A-S>p', '<cmd>cprevious<cr>', { desc = 'Move to previous Quick Fix' })
-
--- autocomplete
--- vim.keymap.set('i', '<C-cr>', '<C-y>', { desc = 'autocomplete from suggestion' })
---
--- vim.keymap.set("i", "<C-j>", 'coc#pum#visible() ? coc#pum#next(1) : v:lua.check_back_space() ? "<TAB>" : coc#refresh()', opts)
--- vim.keymap.set("i", "<C-j>", [[coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"]], opts)
-
--- Term Toggle Function
-local term_buf = nil
-local term_win = nil
-
-function TermToggle(width)
-  width = 3.7 * width
-  if term_win and vim.api.nvim_win_is_valid(term_win) then
-    vim.cmd 'hide'
-  else
-    vim.cmd 'vertical new'
-    local new_buf = vim.api.nvim_get_current_buf()
-    vim.cmd('vertical resize ' .. width)
-    if term_buf and vim.api.nvim_buf_is_valid(term_buf) then
-      vim.cmd('buffer ' .. term_buf) -- go to terminal buffer
-      vim.cmd('bd ' .. new_buf) -- cleanup new buffer
-    else
-      vim.cmd 'terminal'
-      term_buf = vim.api.nvim_get_current_buf()
-      vim.wo.number = false
-      vim.wo.relativenumber = false
-      vim.wo.signcolumn = 'no'
-    end
-    vim.cmd 'startinsert!'
-    term_win = vim.api.nvim_get_current_win()
-  end
-end
-
--- Term Toggle Keymaps
-vim.keymap.set('n', '<A-t>', ':lua TermToggle(20)<CR>', { noremap = true, silent = true })
-vim.keymap.set('i', '<A-t>', '<Esc>:lua TermToggle(20)<CR>', { noremap = true, silent = true })
-vim.keymap.set('t', '<A-t>', '<C-\\><C-n>:lua TermToggle(20)<CR>', { noremap = true, silent = true })
 
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
@@ -408,6 +307,9 @@ require('lazy').setup({
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
+        { '<leader>g', group = '[G]enerativ AI' },
+        { '<leader>l', group = '[L]ist Of' },
+        -- { '<leader>b', group = '[B]ookmark' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
@@ -540,21 +442,6 @@ require('lazy').setup({
   },
   { 'Bilal2453/luvit-meta', lazy = true },
 
-  -- {
-  --   'TheLeoP/powershell.nvim',
-  --   -- ---@type powershell.user_config
-  --   -- opts = {
-  --   --   bundle_path = vim.fn.expand '$HOME/.vscode/extensions/ms-vscode.powershell-2024.4.0/modules',
-  --   -- },
-  --   config = function()
-  --     require('powershell').setup {
-  --       bundle_path = vim.fn.stdpath 'data' .. '/mason/packages/powershell-editor-services',
-  --     }
-  --   end,
-  -- },
-  -- {
-  --   'hrsh7th/cmp_nvim_lsp',
-  -- },
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
@@ -774,17 +661,6 @@ require('lazy').setup({
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
-          -- powershell_es = function()
-          --   local lspconfig = require 'lspconfig'
-          --   lspconfig.powershell_es.setup {
-          --     -- bundle_path = '~/.config/nvim/customLsp',
-          --     bundle_path = vim.fn.expand '$HOME\\AppData\\Local\\nvim-data\\mason\\packages\\powershell-editor-services\\PowerShellEditorServices',
-          --     on_attach = function(client, bufnr)
-          --       vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-          --     end,
-          --     settings = { powershell = { codeFormatting = { Preset = 'OTBS' } } },
-          --   }
-          -- end,
         },
       }
     end,
@@ -855,7 +731,7 @@ require('lazy').setup({
           --    https://github.com/rafamadriz/friendly-snippets
           -- {
           --   'rafamadriz/friendly-snippets',
-          --   config = function()
+          --   config =function()
           --     require('luasnip.loaders.from_vscode').lazy_load()
           --   end,
           -- },
@@ -900,7 +776,7 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<C-z>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -945,19 +821,6 @@ require('lazy').setup({
           { name = 'path' },
         },
       }
-    end,
-  },
-  {
-    'ray-x/lsp_signature.nvim',
-    event = 'InsertEnter',
-    opts = {
-      bind = true,
-      handler_opts = {
-        border = 'rounded',
-      },
-    },
-    config = function(_, opts)
-      require('lsp_signature').setup(opts)
     end,
   },
   { -- You can easily change to a different colorscheme.
@@ -1020,6 +883,13 @@ require('lazy').setup({
     end,
   },
   { -- Highlight, edit, and navigate code
+    -- There are additional nvim-treesitter modules that you can use to interact
+    -- with nvim-treesitter. You should go explore a few and see what interests you:
+    --
+    -- - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
+    -- - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
+    -- - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     -- main = 'nvim-treesitter.configs', -- Sets main module to use for opts
@@ -1053,26 +923,6 @@ require('lazy').setup({
         filetype = 'ps1',
       }
     end,
-    -- opts = {
-    --   ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'ps1' },
-    --   -- Autoinstall languages that are not installed
-    --   auto_install = true,
-    --   highlight = {
-    --     enable = true,
-    --     -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-    --     --  If you are experiencing weird indenting issues, add the language to
-    --     --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-    --     additional_vim_regex_highlighting = { 'ruby' },
-    --   },
-    --   indent = { enable = true, disable = { 'ruby' } },
-    -- },
-
-    -- There are additional nvim-treesitter modules that you can use to interact
-    -- with nvim-treesitter. You should go explore a few and see what interests you:
-    --
-    --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-    --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-    --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
@@ -1095,8 +945,12 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
-  --
+  {
+    import = 'custom.plugins',
+  },
+  {
+    import = 'custom.chat-ai',
+  }, --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`

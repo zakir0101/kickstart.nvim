@@ -1,0 +1,15 @@
+vim.keymap.set('n', '<A-S-l>', [[<cmd>vertical resize +5<cr>]]) -- make the window biger vertically
+vim.keymap.set('n', '<A-S-h>', [[<cmd>vertical resize -5<cr>]]) -- make the window smaller vertically
+vim.keymap.set('n', '<A-S-j>', [[<cmd>horizontal resize +2<cr>]]) -- make the window bigger horizontally by pressing shift and =
+vim.keymap.set('n', '<A-S-k>', [[<cmd>horizontal resize -2<cr>]]) -- make the window smaller horizontally by pressing shift and -
+
+vim.keymap.set('i', '<A-S-l>', [[<cmd>vertical resize +5<cr>]]) -- make the window biger vertically
+vim.keymap.set('i', '<A-S-h>', [[<cmd>vertical resize -5<cr>]]) -- make the window smaller vertically
+vim.keymap.set('i', '<A-S-j>', [[<cmd>horizontal resize +2<cr>]]) -- make the window bigger horizontally by pressing shift and =
+vim.keymap.set('i', '<A-S-k>', [[<cmd>horizontal resize -2<cr>]]) -- make the window smaller horizontally by pressing shift and -
+
+vim.keymap.set('t', '<A-S-l>', [[<cmd>vertical resize +5<cr>]]) -- make the window biger vertically
+vim.keymap.set('t', '<A-S-h>', [[<cmd>vertical resize -5<cr>]]) -- make the window smaller vertically
+vim.keymap.set('t', '<A-S-j>', [[<cmd>horizontal resize +2<cr>]]) -- make the window bigger horizontally by pressing shift and =
+vim.keymap.set('t', '<A-S-k>', [[<cmd>horizontal resize -2<cr>]]) -- make the window smaller horizontally by pressing shift and -
+
