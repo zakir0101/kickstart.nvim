@@ -70,4 +70,4 @@ end
 
 -- vim.keymap.set('n', '<leader>gt', toggle_ai_chat, { desc = '[G]enerative AI [T]oggle' })
 
-return { aa = toggle_ai_chat }
+return {}

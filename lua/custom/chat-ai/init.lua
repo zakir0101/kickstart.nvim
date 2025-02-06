@@ -375,8 +375,8 @@ end
 --              **********************************
 --
 
-vim.keymap.set('n', '<leader>gt', M.toggle_ai_chat, { desc = '[G]enerative AI [T]oggle' })
-vim.keymap.set('n', '<leader>gs', M.send_prompt, { desc = '[G]enerative AI [S]end' })
+-- vim.keymap.set('n', '<leader>gt', M.toggle_ai_chat, { desc = '[G]enerative AI [T]oggle' })
+-- vim.keymap.set('n', '<leader>gs', M.send_prompt, { desc = '[G]enerative AI [S]end' })
 
 --
 -- ##SECTION:

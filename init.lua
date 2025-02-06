@@ -308,6 +308,7 @@ require('lazy').setup({
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>g', group = '[G]enerativ AI' },
+        { '<leader>gc', group = '[G]ithub Copilot' },
         { '<leader>l', group = '[L]ist Of' },
         -- { '<leader>b', group = '[B]ookmark' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
@@ -557,7 +558,6 @@ require('lazy').setup({
               group = highlight_augroup,
               callback = vim.lsp.buf.clear_references,
             })
-
             vim.api.nvim_create_autocmd('LspDetach', {
               group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
               callback = function(event2)
@@ -625,6 +625,7 @@ require('lazy').setup({
           -- capabilities = {},
           settings = {
             Lua = {
+              diagnostics = { disable = { 'missing-fields' } },
               completion = {
                 callSnippet = 'Replace',
               },
@@ -632,6 +633,31 @@ require('lazy').setup({
               -- diagnostics = { disable = { 'missing-fields' } },
             },
           },
+        },
+
+        pyright = {
+          -- handlers = {
+          --   ['textDocument/publishDiagnostics'] = function() end,
+          -- },
+          settings = {
+            pyright = {
+              disableOrganizeImports = true,
+            },
+            python = {
+              analysis = {
+                -- autoSearchPaths = true,
+                typeCheckingMode = 'off',
+                -- useLibraryCodeForTypes = true,
+              },
+            },
+          },
+        },
+
+        clangd = {
+          cmd = { 'clangd' },
+          on_attach = function(client, bufnr)
+            vim.keymap.set('n', '<leader>ch', ':ClangdSwitchSourceHeader<CR>', { silent = true, buffer = bufnr })
+          end,
         },
       }
 
@@ -646,14 +672,30 @@ require('lazy').setup({
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
+      local install_only = { 'tailwindcss' }
       vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
+        'neocmakelsp',
+        'stylua',
+        'ruff',
+        'flake8',
+        'black',
+        -- 'pyright',
+        'ts_ls',
+        'eslint',
+        'html',
+        'cssls',
+        'prettier',
+        'emmet-language-server',
       })
+      vim.list_extend(ensure_installed, install_only)
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
+            if vim.tbl_contains(install_only, server_name) then
+              return
+            end
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
@@ -663,6 +705,33 @@ require('lazy').setup({
           end,
         },
       }
+
+      vim.diagnostic.config {
+        update_in_insert = true,
+        -- signs = {
+        --     severity = {
+        --         min = vim.diagnostic.severity.WARN,
+        --     },
+        --     priority = 5, -- Lower priority for LSP diagnostics than gitsigns
+        -- },
+        -- underline = {
+        --   severity = {
+        --     min = vim.diagnostic.severity.ERROR,
+        --   },
+        -- },
+        float = {
+          focusable = false,
+          style = '',
+          border = 'rounded',
+          source = true,
+          header = '',
+          prefix = '',
+        },
+      }
+
+      -- vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
+      --   border = 'rounded',
+      -- })
     end,
   },
 
@@ -694,17 +763,23 @@ require('lazy').setup({
           lsp_format_opt = 'fallback'
         end
         return {
-          timeout_ms = 500,
+          timeout_ms = 1500,
           lsp_format = lsp_format_opt,
         }
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        -- python = { 'black' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'isort', 'black' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      },
+      formatters = {
+        black = {
+          prepend_args = { '--fast', '--line-length', '79' },
+        },
       },
     },
   },
@@ -744,11 +819,15 @@ require('lazy').setup({
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'tailwind-tools',
+      'onsails/lspkind-nvim',
     },
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
+      local lspkind = require 'lspkind'
+      -- local cmp_select = { behavior = cmp.SelectBehavior.}
       luasnip.config.setup {}
       cmp.status()
       cmp.setup {
@@ -758,6 +837,11 @@ require('lazy').setup({
           end,
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
+
+        window = {
+          completion = cmp.config.window.bordered(),
+          documentation = cmp.config.window.bordered(),
+        },
 
         -- For an understanding of why these mappings were
         -- chosen, you will need to read `:help ins-completion`
@@ -796,12 +880,12 @@ require('lazy').setup({
           --
           -- <c-l> will move you to the right of each of the expansion locations.
           -- <c-h> is similar, except moving you backwards.
-          ['<C-l>'] = cmp.mapping(function()
+          ['<A-l>'] = cmp.mapping(function()
             if luasnip.expand_or_locally_jumpable() then
               luasnip.expand_or_jump()
             end
           end, { 'i', 's' }),
-          ['<C-h>'] = cmp.mapping(function()
+          ['<A-h>'] = cmp.mapping(function()
             if luasnip.locally_jumpable(-1) then
               luasnip.jump(-1)
             end
@@ -819,6 +903,13 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          { name = 'autohotkey' },
+        },
+
+        formatting = {
+          format = lspkind.cmp_format {
+            before = require('tailwind-tools.cmp').lspkind_format,
+          },
         },
       }
     end,
@@ -949,7 +1040,7 @@ require('lazy').setup({
     import = 'custom.plugins',
   },
   {
-    import = 'custom.chat-ai',
+    import = 'custom.copilot',
   }, --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!

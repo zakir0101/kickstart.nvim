@@ -4,6 +4,8 @@
 -- See the kickstart.nvim README for more information
 
 os.execute '. enter-vsshell.ps1'
+local nvimrc = vim.fn.stdpath 'config'
+-- vim.cmd('source ' .. nvimrc .. '\\lua\\custom\\plugins\\' .. 'autohotkey.vim')
 
 -- PowerShell 7
 --
@@ -204,41 +206,9 @@ vim.keymap.set('n', '<C-A-h>', '<cmd>tabprevious<cr>', { desc = 'Move to previou
 -- vim.keymap.set('i', '<C-cr>', '<C-y>', { desc = 'autocomplete from suggestion' })
 -- vim.keymap.set("i", "<C-j>", 'coc#pum#visible() ? coc#pum#next(1) : v:lua.check_back_space() ? "<TAB>" : coc#refresh()', opts)
 -- vim.keymap.set("i", "<C-j>", [[coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"]], opts)
-
+-- let g:netrw_list_hide= netrw_gitignore#Hide()
+-- vim.opt_global.netrw_list_hide = vim.fn['netrw_gitignore#Hide']()
 return {
-
-  {
-    'github/copilot.vim',
-    config = function()
-      -- vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
-      --   expr = true,
-      --   replace_keycodes = false
-      -- })
-
-      vim.keymap.set('i', '<C-A-L>', '<Plug>(copilot-accept-word)')
-      vim.keymap.set('i', '<C-A-H>', '<Plug>(copilot-accept-line)')
-
-      vim.keymap.set('i', '<C-A-J>', '<Plug>(copilot-next)')
-      vim.keymap.set('i', '<C-A-K>', '<Plug>(copilot-previous)')
-      vim.keymap.set('i', '<C-A-s>', '<Plug>(copilot-suggest)')
-      vim.keymap.set('i', '<C-A-d>', '<Plug>(copilot-dismiss)')
-      vim.keymap.set('i', '<A-a>', '<cmd>Copilot panel<cr>')
-
-      -- vim.keymap.set('i', '<A-C-c>', '<cmd>Copilot panel<cr>')
-      -- vim.keymap.set('i', '<leader-c>', '<cmd>Copilot panel<cr>', { desc = '[C]opilot panel' })
-
-      vim.g.copilot_filetypes = {
-        markdown = true,
-      }
-
-      -- <Plug>(copilot-accept-wordd
-      -- <Plug>(copilot-accept-line)
-      -- <Plug>(copilot-suggest)
-      -- <Plug>(copilot-dismiss)
-      -- <Plug>(copilot-next)
-      -- <Plug>(copilot-previous)
-    end,
-  },
 
   {
     'ray-x/lsp_signature.nvim',
@@ -253,30 +223,134 @@ return {
       require('lsp_signature').setup(opts)
     end,
   },
-  -- {
-  --   'ellisonleao/glow.nvim',
-  --   config = function()
-  --     require('glow').setup {
-  --       -- your override config
-  --       install_path = 'C:\\Program Files\\Glow', -- default path for installing glow binary
-  --       border = 'shadow', -- floating window border config
-  --       -- style = 'dark|light',
-  --       pager = false,
-  --       width = 80,
-  --       height = 100,
-  --       width_ratio = 0.7, -- maximum width of the Glow window compared to the nvim window size (overrides `width`)
-  --       height_ratio = 0.7,
-  --     }
-  --   end,
-  --   cmd = 'Glow',
-  -- },
-  -- install without yarn or npm
   {
     'iamcco/markdown-preview.nvim',
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
     ft = { 'markdown' },
-    build = function()
-      vim.fn['mkdp#util#install']()
+    build = function(plugin)
+      if vim.fn.executable 'npx' then
+        vim.cmd('!cd ' .. plugin.dir .. ' && cd app && npx --yes yarn install')
+      else
+        vim.cmd [[Lazy load markdown-preview.nvim]]
+        vim.fn['mkdp#util#install']()
+      end
+    end,
+    init = function()
+      if vim.fn.executable 'npx' then
+        vim.g.mkdp_filetypes = { 'markdown' }
+      end
+    end,
+  },
+  -- {
+  --   'jose-elias-alvarez/null-ls.nvim',
+  --   config = function()
+  --     local null_ls = require 'null-ls'
+  --     null_ls.setup {
+  --       gksources = {
+  --         null_ls.builtins.diagnostics.pylint.with {
+  --           diagnostic_config = { underline = false, virtual_text = false, signs = false },
+  --           method = null_ls.methods.DIAGNOSTICS_ON_SAVE,
+  --         },
+  --       },
+  --     }
+  -- null_ls.setup {
+  --   sources = {
+  --     null_ls.builtins.formatting.stylua,
+  --     null_ls.builtins.diagnostics.eslint,
+  --     null_ls.builtins.completion.spell,
+  --   },
+  -- }
+  --   end,
+  -- },
+  {
+    'DasGandlaf/nvim-autohotkey',
+    dependencies = {
+      'jose-elias-alvarez/null-ls.nvim',
+      'hrsh7th/nvim-cmp',
+    },
+    config = function()
+      require 'nvim-autohotkey'
+      require('cmp').setup.filetype({ 'autohotkey' }, {
+        sources = { { name = 'autohotkey' } },
+      })
+    end,
+  },
+  {
+
+    'folke/todo-comments.nvim',
+    event = 'VimEnter',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      -- signs = false,
+    },
+  },
+  {
+
+    'windwp/nvim-ts-autotag',
+    opts = {},
+  },
+
+  {
+    'luckasRanarison/tailwind-tools.nvim',
+    name = 'tailwind-tools',
+    build = ':UpdateRemotePlugins',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-telescope/telescope.nvim', -- optional
+      'neovim/nvim-lspconfig', -- optional
+    },
+    config = function()
+      vim.keymap.set('n', '<leader>ts', '<cmd>TailwindSort<CR>')
+      vim.keymap.set('n', '<leader>tc', '<cmd>TailwindConcealToggle<CR>')
+      require('tailwind-tools').setup {}
+    end,
+  },
+
+  {
+    'linux-cultist/venv-selector.nvim',
+    dependencies = { 'neovim/nvim-lspconfig', 'nvim-telescope/telescope.nvim', 'mfussenegger/nvim-dap-python' },
+    opts = {
+      -- Your options go here
+      -- name = "venv",
+      -- auto_refresh = false
+    },
+    -- event = 'eryLazy', -- Optional: needed only if you want to type `:VenvSelect` without a keymapping
+    keys = {
+      -- Keymap to open VenvSelector to pick a venv.
+      { '<leader>vs', '<cmd>VenvSelect<cr>' },
+      -- Keymap to retrieve the venv from a cache (the one previously used for the same project directory).
+      { '<leader>vc', '<cmd>VenvSelectCached<cr>' },
+    },
+  },
+  -- {
+  --   'mfussenegger/nvim-lint',
+  --   config = function()
+  --     require('lint').linters_by_ft = {
+  --       python = { 'flake8' }, --'mypy'
+  --       vim = { 'vint' },
+  --       sh = { 'shellcheck' },
+  --     }
+  --
+  --     vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
+  --       callback = function()
+  --         require('lint').try_lint()
+  --       end,
+  --     })
+  --   end,
+  -- },
+  {
+    'dense-analysis/ale',
+    config = function()
+      -- Configuration goes here.
+      local g = vim.g
+
+      -- g.ale_ruby_rubocop_auto_correct_all = 1
+
+      g.ale_linters = {
+        -- ruby = { 'rubocop', 'ruby' },
+        -- lua = { 'lua_language_server' },
+        python = { 'flake8', 'mypy' },
+      }
     end,
   },
 }
