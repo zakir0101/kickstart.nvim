@@ -154,6 +154,7 @@ return {
 
   {
     'zakir0101/CopilotChat.nvim',
+    branch = not path('zakir') or nil,
     dir = path,
 
     dependencies = {
