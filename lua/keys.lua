@@ -4,6 +4,10 @@ local NAVIGATION_LOC_LIST_MODE = 2
 local NAVIGATION_QUICK_LIST_MODE = 3
 local MODE_NAMES = { 'TABS', 'LocList', 'QuickList' }
 
+-- In lua/keys.lua
+local actions
+local action_state
+local builtin
 local M = {}
 
 function M.setup()
@@ -120,6 +124,9 @@ function M.setup_fix_list_toggle_keybind()
 end
 
 function M.setup_fix_list_diagnostic_keybind()
+  actions = require('telescope.actions')
+  action_state = require('telescope.actions.state')
+  builtin = require('telescope.builtin')
   local sources = { 'A', 'E', 'W', 'I', 'N' }
   local source_names = {
     A = '[A]ll',
@@ -158,9 +165,23 @@ function M.setup_fix_list_diagnostic_keybind()
 
       which_key.add({
         { '<leader>' .. dkey .. mkey, group = dname .. ' ' .. mname .. ' =>', mode = { 'n', 'x' } },
+        { '<leader>' .. dkey .. mkey .. '/', group = dname .. ' ' .. mname .. ' Grep  =>', mode = { 'n', 'x' } },
         { '<leader>' .. dkey .. mkey .. '+', group = dname_sh .. ' ' .. mname .. ' [+] min == ...', mode = { 'n', 'x' } },
         { '<leader>' .. dkey .. mkey .. '-', group = dname_sh .. ' ' .. mname .. ' [+] max == ...', mode = { 'n', 'x' } },
       })
+
+      vim.keymap.set({ 'n', 'x' }, '<leader>' .. dkey .. mkey .. '/' .. 'g', function()
+        M.grep_pattern(mode, dest, false)
+      end, { desc = dname_sh .. ' ' .. mname .. ' [G]rep cbufr' })
+
+      vim.keymap.set({ 'n', 'x' }, '<leader>' .. dkey .. mkey .. '/' .. 'G', function()
+        M.grep_pattern(mode, dest, true)
+      end, { desc = dname_sh .. ' ' .. mname .. ' [G]rep all' })
+
+      vim.keymap.set({ 'n', 'x' }, '<leader>' .. dkey .. mkey .. '/' .. 'r', function()
+        M.find_refrence(mode, dest)
+      end, { desc = dname_sh .. ' ' .. mname .. 'find [R]eferences' })
+
       vim.keymap.set({ 'n', 'x' }, '<leader>' .. dkey .. mkey .. '.', function()
         Utils.add_diagnostics_to_list(mode, dest, 'cursor', nil)
       end, { desc = dname_sh .. ' ' .. mname .. ' [C]urrent Line' })
@@ -187,18 +208,87 @@ function M.setup_fix_list_diagnostic_keybind()
       end
     end
   end
-  -- vim.keymap.set('n', '<leader>ld', Utils.add_current_diagnostics_to_loclist, { desc = '[L]list Of current [D]iagnostic' })
-  --
-  -- vim.keymap.set('n', '<leader>lD', Utils.add_all_diagnostics_to_qflist, { desc = '[L]list Of All [D]iagnostic' })
-  --
-  -- vim.keymap.set('n', '<leader>la', function()
-  --   Utils.add_current_line_to_list('llist')
-  -- end, { desc = '[a]dd current line to locList' })
-  --
-  -- vim.keymap.set('n', '<leader>lA', function()
-  --   Utils.add_current_line_to_list('clist')
-  -- end, { desc = '[A]dd current line to quickFixList' })
 end
+
+-- In lua/keys.lua
+
+--- Convert a raw Telescope entry into a DiagnosticItem
+--- so we can reuse util.reduce_/sort_/show_diagnostics_list
+local function to_diagnostic_item(e)
+  local filename = e.filename or (e.bufnr and vim.api.nvim_buf_get_name(e.bufnr))
+  -- convert filename (not URI) into a buffer number; load buffer if needed
+  local bufnr = e.bufnr or vim.fn.bufnr(filename, true)
+
+  return {
+    bufnr = bufnr,
+    filename = filename,
+    lnum = (e.lnum or (e.range and e.range.start.line)) + 1,
+    col = (e.col or (e.range and e.range.start.character)) + 1,
+    text = e.ordinal or e.display or e.text or '',
+    type = 'N', -- just “note” for grep/refs
+  }
+end
+
+--- Shared inner: collect multi‑selection or all results
+local function collect_entries(picker, prompt_bufnr)
+  local sels = picker:get_multi_selection()
+  if #sels > 0 then
+    return vim.tbl_map(to_diagnostic_item, sels)
+  end
+  local all = {}
+  for e in picker.manager:iter() do
+    table.insert(all, to_diagnostic_item(e))
+  end
+  return all
+end
+
+function M.grep_pattern(mode, dest, all)
+  local finder = all and builtin.live_grep or builtin.current_buffer_fuzzy_find
+  finder({
+    attach_mappings = function(prompt_bufnr, map)
+      local picker = action_state.get_current_picker(prompt_bufnr)
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        -- **REUSE** the filtering/sorting/display logic:
+        local items = collect_entries(picker, prompt_bufnr)
+        Utils.show_diagnostics_list(mode, dest, items, 'Grep Results')
+      end)
+      return true
+    end,
+  })
+end
+
+function M.find_refrence(mode, dest)
+  builtin.lsp_references({
+    attach_mappings = function(prompt_bufnr, map)
+      local picker = action_state.get_current_picker(prompt_bufnr)
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        local items = collect_entries(picker, prompt_bufnr)
+        Utils.show_diagnostics_list(mode, dest, items, 'LSP References')
+      end)
+      return true
+    end,
+  })
+end
+
+---@param mode 'a'|'r'  -- append or replace
+---@param dest  'l'|'c'  -- loclist or quickfix
+---@param all boolean  -- all or current buffer
+--function M.grep_cbufr(mode, dest, all)
+--   --TODO: implement this function , it should open a telescope window for searching up patterns in current/all files
+--   -- if user press enter and no selections made ( by pressing tab) then all current search result should be appended/replaced to the dest list
+--   -- if user press enter and some selections made ( by pressing tab) then only selected items should be appended/replaced to the dest list
+-- end
+
+---@param mode 'a'|'r'  -- append or replace
+---@param dest  'l'|'c'  -- loclist or quickfix
+-- function M.find_refrence(mode, dest)
+--   --TODO: implement this function , it should open a telescope window for searching up patterns in all lsp.refrence for current cursor location .
+--   -- if user press enter and no selections made ( by pressing tab) then all current search result should be appended/replaced to the dest list
+--   -- if user press enter and some selections made ( by pressing tab) then only selected items should be appended/replaced to the dest list
+-- end
+
 function M.setup_arabic_keybind()
   vim.keymap.set({ 'n', 'i' }, 'arb', Utils.setup_arabic, { desc = 'Enable Arabic mode' })
   vim.keymap.set({ 'n', 'i' }, 'eng', Utils.setup_latin, { desc = 'Disable Arabic mode' })
@@ -239,12 +329,6 @@ end
 
 function M.setup_buffer_specific_telescope_keybind(buf)
   local builtin = require('telescope.builtin')
-  -- M.map('gd', builtin.lsp_definitions, '[G]oto [D]efinition', buf)
-  -- M.map('gr', builtin.lsp_references, '[G]oto [R]eferences', buf)
-  -- M.map('gI', builtin.lsp_implementations, '[G]oto [I]mplementation', buf)
-  -- M.map('<leader>D', builtin.lsp_type_definitions, 'Type [D]efinition', buf)
-  -- M.map('<leader>ds', builtin.lsp_document_symbols, '[D]ocument [S]ymbols', buf)
-  -- M.map('<leader>ws', builtin.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols', buf)
   M.map('gO', builtin.lsp_document_symbols, 'Open Document Symbols', buf)
   M.map('gW', builtin.lsp_dynamic_workspace_symbols, 'Open Workspace Symbols', buf)
   M.map('grt', builtin.lsp_type_definitions, '[G]oto [T]ype Definition', buf)
@@ -254,10 +338,6 @@ function M.setup_buffer_specific_telescope_keybind(buf)
 end
 
 function M.setup_buffer_specific_lsp_keybind(buf)
-  -- M.map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame', buf)
-  -- M.map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', buf, { 'n', 'x' })
-  -- M.map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration', buf)
-
   M.map('grn', vim.lsp.buf.rename, '[R]e[n]ame', buf)
   M.map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', buf, { 'n', 'x' })
   M.map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration', buf)
