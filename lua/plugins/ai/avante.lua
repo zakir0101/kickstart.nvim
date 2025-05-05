@@ -6,7 +6,7 @@ end
 
 return {
   'zakir0101/avante.nvim',
-  branch = not path('zakir') or nil,
+  branch = not path and 'zakir' or nil,
   dir = path,
   event = 'VeryLazy',
   version = false, -- Never set this value to "*"! Never!
