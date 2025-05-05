@@ -1,6 +1,12 @@
+-- check path exist :
+local path = nil
+if vim.fn.isdirectory('D:\\Projects\\avante.nvim') ~= 0 then
+  path = 'D:\\Projects\\avante.nvim'
+end
+
 return {
-  'yetone/avante.nvim',
-  dir = 'D:\\Projects\\avante.nvim',
+  'zakir0101/avante.nvim',
+  dir = path,
   event = 'VeryLazy',
   version = false, -- Never set this value to "*"! Never!
   opts = {

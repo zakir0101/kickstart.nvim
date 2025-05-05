@@ -113,6 +113,10 @@ vim.api.nvim_create_autocmd('DirChanged', {
   end,
 })
 
+local path = nil
+if vim.fn.isdirectory('D:\\Projects\\CopilotChat.nvim') ~= 0 then
+  path = 'D:\\Projects\\CopilotChat.nvim'
+end
 return {
   {
     -- hall zakir
@@ -149,9 +153,9 @@ return {
   },
 
   {
-    'CopilotChat.nvim',
-    dir = 'D:\\Projects\\CopilotChat.nvim',
-    -- 'CopilotC-Nvim/CopilotChat.nvim',
+    'zakir0101/CopilotChat.nvim',
+    dir = path,
+
     dependencies = {
       { 'github/copilot.vim' }, -- or zbirenbaum/copilot.lua
       { 'nvim-lua/plenary.nvim', branch = 'master' }, -- for curl, log and async functions

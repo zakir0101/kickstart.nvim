@@ -12,6 +12,8 @@ function M.setup()
     vim.o.shellpipe = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
     vim.o.shellquote = ''
     vim.o.shellxquote = ''
+  elseif vim.fn.executable('zsh') then
+    vim.o.shell = 'zsh'
   end
 end
 
