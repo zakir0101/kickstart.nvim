@@ -290,8 +290,8 @@ end
 -- end
 
 function M.setup_arabic_keybind()
-  vim.keymap.set({ 'n', 'i' }, 'arb', Utils.setup_arabic, { desc = 'Enable Arabic mode' })
-  vim.keymap.set({ 'n', 'i' }, 'eng', Utils.setup_latin, { desc = 'Disable Arabic mode' })
+  vim.keymap.set({ 'n' }, 'arb', Utils.setup_arabic, { desc = 'Enable Arabic mode' })
+  vim.keymap.set({ 'n' }, 'eng', Utils.setup_latin, { desc = 'Disable Arabic mode' })
 end
 
 function M.set_yz_keybind()

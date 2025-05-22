@@ -4,7 +4,7 @@ if vim.fn.isdirectory('D:\\Projects\\avante.nvim') ~= 0 then
   path = 'D:\\Projects\\avante.nvim'
 end
 
-return {
+a = {
   'zakir0101/avante.nvim',
   branch = not path and 'zakir' or nil,
   dir = path,
@@ -60,3 +60,5 @@ return {
     },
   },
 }
+
+return {}
